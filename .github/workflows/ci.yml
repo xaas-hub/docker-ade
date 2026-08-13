@@ -1,0 +1,141 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The image tracks upstream OpenWebStart and Zulu releases, both resolved at
+  # build time; a monthly rebuild keeps the published tag current.
+  schedule:
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semantic version to publish, without the leading v (leave empty to build latest)'
+        required: false
+        type: string
+      ref:
+        description: 'Git ref to build (leave empty for the current branch)'
+        required: false
+        type: string
+  # Called by release.yml once semantic-release has pushed the tag: a tag
+  # created with GITHUB_TOKEN does not start a workflow run of its own, hence
+  # no `tags: ['v*']` trigger above.
+  workflow_call:
+    inputs:
+      version:
+        required: false
+        type: string
+      ref:
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: ${{ vars.DOCKERHUB_REPOSITORY || 'frugan/ade' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    # The release commit only touches CHANGELOG.md; skip the rebuild it would
+    # otherwise trigger when semantic-release pushes with a PAT.
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Lint the Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Lint the shell scripts
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck run.sh scripts/*.sh scripts/jws scripts/desktop-telematico
+
+  build:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Only amd64: the Agenzia publishes its Linux software for x86-64 only,
+      # and Zulu 8 with JavaFX has no linux-aarch64 build either.
+      #
+      # The semver tags take their value from the input rather than from the
+      # git ref, because this workflow is called from a run whose ref is the
+      # branch, not the tag.
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch,enable=${{ inputs.version == '' }}
+            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            # is_default_branch is true even in the workflow_call from
+            # release.yml, whose ref is the branch and not the tag: without
+            # the version guard the release run and the push run would both
+            # publish latest, in parallel, and the last one would win.
+            type=raw,value=latest,enable=${{ inputs.version == '' && github.ref == 'refs/heads/main' }}
+
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: ci-test:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The image ships no Agenzia software, so the only thing worth asserting
+      # is that the JNLP stack is in place: javaws and a Java 8 with JavaFX.
+      - name: Smoke test
+        run: |
+          docker run --rm --entrypoint sh ci-test:latest -c '
+            set -eu
+            test -x "${OWS_HOME}/javaws"
+            jvm=$(find "${JVM_DIR}" -maxdepth 3 -path "*/bin/java" -type f | head -n1)
+            "$jvm" -version
+            home=$(dirname "$(dirname "$jvm")")
+            # JavaFX must be there, otherwise the applications will not start.
+            ls "$home/jre/lib/ext/jfxrt.jar" || ls "$home/lib/ext/jfxrt.jar"
+          '
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+
+      - name: Update the Docker Hub description
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && inputs.version == ''
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.IMAGE_NAME }}
+          readme-filepath: ./README.md

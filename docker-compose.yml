@@ -1,0 +1,42 @@
+services:
+  ade:
+    image: ${IMAGE:-frugan/ade:latest}
+    # `image` is both the pull reference and the build tag for the section
+    # below, so a local build has to be tagged the way it will be run:
+    # `IMAGE=ade:local docker compose build`, then `IMAGE=ade:local ./run.sh`.
+    # Building with IMAGE unset overwrites the published tag in the local
+    # cache, and nothing will pull it again until that tag is removed.
+    build:
+      context: .
+    # The default, stated explicitly because the build section above makes it
+    # ambiguous: the image is pulled when it is not already in the local
+    # cache, and this context is only built if it cannot be obtained.
+    pull_policy: missing
+    container_name: ade
+    # Default is uid 0. With a daemon configured for userns-remap, container
+    # UID 0 maps to the host user per /etc/subuid, which is what makes the X11
+    # socket and ./data usable from the host. Without userns-remap, set
+    # DOCKER_USER=$(id -u):$(id -g) in .env instead, or every file written to
+    # ./data will be owned by root.
+    #
+    # For the same reason `ipc: host` is not allowed under userns-remap:
+    # sharing host namespaces is forbidden when user namespaces are enabled.
+    # Use shm_size if Swing dialogs ever render blank.
+    user: ${DOCKER_USER:-0:0}
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+      XDG_RUNTIME_DIR: /tmp/runtime
+    # Everything in .env is forwarded as-is. This is how DT_URL and DT_SHA256
+    # are overridden when the Agenzia publishes a new Desktop Telematico:
+    # leaving them out keeps the defaults baked into the image, whereas an
+    # explicit empty value here would shadow them. Requires Compose 2.24+.
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - ./data:/data
+      - ./vendor:/vendor:ro
+    shm_size: 512m
+    stdin_open: true
+    tty: true

@@ -1,0 +1,27 @@
+# Auto-label PRs based on changed files.
+# Syntax required by actions/labeler v5 and above.
+"area: image":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Dockerfile"
+          - ".dockerignore"
+          - "docker-compose.yml"
+
+"area: scripts":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+          - "run.sh"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.md"
+          - ".github/*.md"
+
+"area: ci/cd":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".releaserc.json"
+          - "commitlint.config.mjs"

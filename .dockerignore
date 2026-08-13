@@ -1,0 +1,39 @@
+# Environment
+.env*
+!.env.dist
+
+# Workspace
+data
+# vendor/ is intentionally NOT excluded: an offline build reads the
+# OpenWebStart package and the Zulu archive from there.
+
+# Repo
+.git
+.github
+.megalinter.yml
+.markdownlint.yml
+.releaserc.json
+commitlint.config.mjs
+docker-compose.yml
+LICENSE
+README.md
+run.sh
+*.code-workspace
+
+# Python
+.ctxsync*
+.claude*
+venv/
+__pycache__/
+*.pyc
+
+# Linter
+megalinter-reports/
+*.cache
+core.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

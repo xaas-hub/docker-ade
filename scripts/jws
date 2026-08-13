@@ -1,0 +1,99 @@
+#!/bin/bash
+# Launches a JNLP application through OpenWebStart, inside the same X session
+# as Desktop Telematico. JNLP files are downloaded by hand into vendor/ and
+# matched by the tokens given on the command line, so a new application needs
+# no change here.
+#
+#   jws RPF22            -> vendor/RPF22.jnlp
+#   jws isa 2024         -> vendor/*isa*2024*.jnlp
+#   jws /vendor/x.jnlp   -> that exact file
+#   rpf 22 / isa 2024    -> aliases: argv[0] becomes the first token
+#   jws --list           -> JNLP files available in vendor/
+#   jws --check          -> the javaws binary in use
+#
+# Matching is case-insensitive and deliberately refuses to guess: when several
+# files match, it lists them and stops, because picking the wrong year here
+# means filing the wrong return.
+set -euo pipefail
+
+APP=$(basename "$0")
+VENDOR="${VENDOR_DIR:-/vendor}"
+
+list_jnlp() {
+	find "${VENDOR}" -maxdepth 1 -iname '*.jnlp' -printf '  %f\n' 2>/dev/null | sort || true
+}
+
+find_javaws() {
+	local c
+	if c=$(command -v javaws 2>/dev/null); then
+		echo "$c"
+		return 0
+	fi
+	for c in "${OWS_HOME:-/opt/OpenWebStart}/javaws" \
+		/opt/OpenWebStart/javaws \
+		/usr/local/bin/javaws \
+		"${HOME}/.local/bin/javaws"; do
+		[ -x "$c" ] && {
+			echo "$c"
+			return 0
+		}
+	done
+	# Last resort: search the usual install roots.
+	c=$(find /opt /usr/local -maxdepth 4 -name javaws -type f -executable 2>/dev/null | head -n1)
+	[ -n "$c" ] && {
+		echo "$c"
+		return 0
+	}
+	return 1
+}
+
+if [ "${1:-}" = "--list" ]; then
+	echo "JNLP files in ${VENDOR}:"
+	list_jnlp
+	exit 0
+fi
+
+if ! JAVAWS=$(find_javaws); then
+	echo "ERROR: javaws not found. The image was built without OpenWebStart." >&2
+	exit 1
+fi
+
+if [ "${1:-}" = "--check" ]; then
+	echo "javaws: ${JAVAWS}"
+	exec "${JAVAWS}" -version
+fi
+
+# The alias name is meaningful only when it is not the generic command.
+TOKENS=()
+[ "${APP}" != "jws" ] && TOKENS+=("${APP}")
+TOKENS+=("$@")
+
+if [ ${#TOKENS[@]} -eq 0 ]; then
+	echo "usage: ${APP} <token...|percorso.jnlp>" >&2
+	exit 2
+fi
+
+if [ -f "${TOKENS[0]}" ]; then
+	JNLP="${TOKENS[0]}"
+else
+	pattern="*"
+	for t in "${TOKENS[@]}"; do
+		pattern="${pattern}${t}*"
+	done
+	mapfile -t matches < <(find "${VENDOR}" -maxdepth 1 -iname "${pattern}.jnlp" | sort)
+
+	if [ ${#matches[@]} -eq 0 ]; then
+		echo "ERROR: no JNLP matching '${pattern}.jnlp'. Available in ${VENDOR}:" >&2
+		list_jnlp >&2
+		exit 1
+	fi
+	if [ ${#matches[@]} -gt 1 ]; then
+		echo "ERROR: '${pattern}.jnlp' is ambiguous, be more specific:" >&2
+		printf '  %s\n' "${matches[@]##*/}" >&2
+		exit 1
+	fi
+	JNLP="${matches[0]}"
+fi
+
+echo "Launching ${JNLP##*/}"
+exec "${JAVAWS}" "${JNLP}"

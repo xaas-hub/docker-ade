@@ -1,0 +1,11 @@
+#!/bin/bash
+# Launches Desktop Telematico from the persistent install directory,
+# installing it first if the volume is still empty.
+set -euo pipefail
+
+if [ ! -x "${DT_HOME}/DesktopTelematico" ]; then
+	install-desktop-telematico
+fi
+
+cd "${DT_HOME}"
+exec ./DesktopTelematico "$@"
