@@ -65,7 +65,7 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       # Only amd64: the Agenzia publishes its Linux software for x86-64 only,
       # and Zulu 8 with JavaFX has no linux-aarch64 build either.
