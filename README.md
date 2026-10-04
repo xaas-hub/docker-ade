@@ -249,9 +249,21 @@ Vedi [CONTRIBUTING](.github/CONTRIBUTING.md) per le linee guida complete.
 
 ## Licenza
 
-(ɔ) Copyleft 2026 [Frugan](https://frugan.it).
+Copyright (c) 2026 [Frugan](https://frugan.it).
 [MIT](https://choosealicense.com/licenses/mit/), vedi il file [LICENSE](LICENSE).
 
 Il packaging in questo repository è MIT. Il software dell'Agenzia non è incluso
 né ridistribuito, ed è distribuito per l'uso da parte del contribuente e dei
 soggetti abilitati: resta soggetto alle sue condizioni d'uso.
+
+<details>
+<summary>In English</summary>
+
+This license covers the packaging in this repository only. The applications it
+runs (Desktop Telematico, RedditiOnLine PF, Il tuo ISA and the other software
+published by the Agenzia delle Entrate) are not included in this repository nor
+in the published image: they are downloaded from the official servers at run
+time and remain subject to their own terms of use. OpenWebStart is distributed
+by Karakun under GPLv2 with Classpath Exception; Azul Zulu builds are OpenJDK
+builds under GPLv2 with Classpath Exception.
+</details>

@@ -19,13 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This license covers the packaging in this repository only. The applications it
-runs (Desktop Telematico, RedditiOnLine PF, Il tuo ISA and the other software
-published by the Agenzia delle Entrate) are not included in this repository nor
-in the published image: they are downloaded from the official servers at run
-time and remain subject to their own terms of use. OpenWebStart is distributed
-by Karakun under GPLv2 with Classpath Exception; Azul Zulu builds are OpenJDK
-builds under GPLv2 with Classpath Exception.
