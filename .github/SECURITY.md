@@ -19,6 +19,7 @@ We take security seriously. If you discover a security vulnerability, please rep
 Instead, please send an email to: **<dev@frugan.it>**
 
 Include the following information:
+
 - Description of the vulnerability
 - Steps to reproduce the issue
 - Potential impact assessment
@@ -34,6 +35,7 @@ Include the following information:
 ### Responsible Disclosure
 
 We believe in responsible disclosure. We ask that you:
+
 - Give us reasonable time to investigate and fix the issue
 - Do not publicly disclose the vulnerability until we've had a chance to fix it
 - Do not exploit the vulnerability for malicious purposes
@@ -56,6 +58,7 @@ When running docker-ade:
 ## Security Contact
 
 For security-related questions or concerns:
+
 - Email: <dev@frugan.it>
 - GitHub: [@frugan-dev](https://github.com/frugan-dev)
 

@@ -4,7 +4,7 @@ Thank you for your interest in contributing!
 
 ## Repository Structure
 
-```
+```text
 ├── Dockerfile                          # Image definition (Debian + OpenWebStart + Zulu 8 FX)
 ├── docker-compose.yml                  # Service definition, X11 mount, volumes
 ├── run.sh                              # Host wrapper: xhost authorisation + compose run
@@ -57,7 +57,7 @@ When reporting:
 ### Build Test Image
 
 ```bash
-docker compose build     # after uncommenting the build: section
+IMAGE=ade:local docker compose build
 # or
 docker build -t ade:local .
 ```
@@ -117,7 +117,7 @@ Commit types drive the release: `feat` bumps the minor version, `fix`,
 3. **Monthly** (1st of the month, 04:00 UTC) — rebuild, so the published tag
    tracks the current OpenWebStart and Zulu releases, both resolved at build
    time
-4. **On tag `v*`** — build and push the versioned tags
+4. **On release** — `release.yml` calls `ci.yml` to push the versioned tags
 5. **Manual trigger** — "Actions" tab → "Run workflow"
 
 ## Questions?

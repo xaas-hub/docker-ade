@@ -19,8 +19,8 @@ jobs:
 
           # Issues
           stale-issue-message: |
-            This issue has been automatically marked as stale because it has not had 
-            recent activity. It will be closed if no further activity occurs. 
+            This issue has been automatically marked as stale because it has not had
+            recent activity. It will be closed if no further activity occurs.
             Thank you for your contributions.
           stale-issue-label: "stale"
           days-before-issue-stale: 60
@@ -28,7 +28,7 @@ jobs:
 
           # Pull Requests
           stale-pr-message: |
-            This pull request has been automatically marked as stale because it has not had 
+            This pull request has been automatically marked as stale because it has not had
             recent activity. It will be closed if no further activity occurs.
             Please rebase and push to refresh if this PR is still relevant.
           stale-pr-label: "stale"
