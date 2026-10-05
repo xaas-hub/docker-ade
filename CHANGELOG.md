@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6](https://github.com/xaas-hub/docker-ade/compare/v1.0.5...v1.0.6) (2026-10-05)
+
+### Dependencies
+
+* **deps:** bump actions/create-github-app-token from 2 to 3 ([#13](https://github.com/xaas-hub/docker-ade/issues/13)) ([e3d905d](https://github.com/xaas-hub/docker-ade/commit/e3d905d7ae9b2c953b13662953cf4ee4d52e6e7b))
+
 ## [1.0.5](https://github.com/xaas-hub/docker-ade/compare/v1.0.4...v1.0.5) (2026-10-04)
 
 ### Dependencies
